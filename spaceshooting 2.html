@@ -1,0 +1,236 @@
+<html>
+
+<head>
+    <title>Game</title>
+    <audio id="game-audio" src="https://drive.google.com/u/1/uc?id=1tRtZ7R6DZQm2L0L9APHjWRMKTwyRiJY4&export=download"
+        loop></audio>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@glidejs/glide@^3.4.1/dist/css/glide.core.min.css">
+    <style>
+        body {
+            margin: 0;
+            background-image: url('https://bit.ly/background1201');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center top;
+        }
+
+        #reload-btn button:hover {
+            transform: scale(1.1);
+        }
+
+        #reload-btn button {
+            font-size: 24px;
+            padding: 12px 24px;
+            border-radius: 10px;
+            transition: transform 0.2s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <audio id="game-audio" loop></audio>
+    <div id="reload-btn"
+        style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <button onclick="location.reload()">Reload</button>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var audio = document.getElementById("game-audio");
+            audio.volume = 0.8;
+            audio.addEventListener('canplaythrough', function () {
+                audio.play();
+            });
+
+            var spaceship = document.createElement('img');
+            spaceship.src = 'https://static.wixstatic.com/media/914964_81b63d175f354052bdd7e14e1a792f24_prv~mv2.gif';
+            spaceship.style.position = 'absolute';
+            spaceship.style.top = '50%';
+            spaceship.style.left = '50%';
+            spaceship.style.transform = 'translate(-50%, -50%)';
+            spaceship.style.filter = 'brightness(150%)';
+            document.body.appendChild(spaceship);
+
+            spaceship.style.width = '5%';
+
+            spaceship.style.top = '90%';
+
+            document.body.onmousemove = function (e) {
+                spaceship.style.left = e.clientX + 'px';
+            }
+
+            var enemyImg = new Image();
+            enemyImg.src = 'https://bit.ly/enemy-image';
+
+            var enemy = document.createElement('img');
+            enemy.src = enemyImg.src
+            enemy.style.position = 'absolute';
+            enemy.style.top = '0%';
+            enemy.style.left = '50%';
+            enemy.style.transform = 'translate(-50%, -50%)';
+            enemy.style.filter = 'brightness(150%)';
+            document.body.appendChild(enemy);
+
+            enemy.style.width = '2%';
+
+            var enemyInterval = setInterval(function () {
+                var enemy = document.createElement('img');
+                enemy.src = enemyImg.src
+                enemy.style.width = '2%';
+                enemy.style.position = 'absolute';
+                enemy.style.top = '0%';
+                enemy.style.left = Math.random() * 100 + '%';
+                enemy.style.transform = 'translate(-50%, -50%)';
+                enemy.style.filter = 'brightness(150%)';
+                document.body.appendChild(enemy);
+                var enemyInterval = setInterval(function () {
+                    enemy.style.top = enemy.offsetTop + 3 + 'px';
+                    if (enemy.offsetTop > window.innerHeight - 35) {
+                        clearInterval(enemyInterval);
+                        document.body.removeChild(enemy);
+                    }
+                }, 10);
+            }, 70);
+
+            var score = 0;
+            var scoreElement = document.createElement('div');
+            scoreElement.style.position = 'absolute';
+            scoreElement.style.top = '3%';
+            scoreElement.style.left = '5%';
+            scoreElement.style.transform = 'translate(-50%, -50%)';
+            scoreElement.style.fontSize = '20px';
+            scoreElement.style.color = 'white';
+            scoreElement.innerHTML = 'Score: ' + score;
+            document.body.appendChild(scoreElement);
+
+            if (score > 1000) {
+                var button = document.createElement('button');
+                button.innerText = 'Click to redirect';
+                button.style.position = 'absolute';
+                button.style.top = '50%';
+                button.style.left = '50%';
+                button.style.transform = 'translate(-50%, -50%)';
+                button.onclick = function () {
+                    window.location.href = 'http://127.0.0.1:8080/redirect-2.html';
+                }
+                document.body.appendChild(button);
+            }
+
+            function checkCollision() {
+                var enemies = document.getElementsByTagName('img');
+                for (var i = 0; i < enemies.length; i++) {
+                    if (enemies[i].src.indexOf('https://bit.ly/enemy-image') != -1) {
+                        var enemy = enemies[i];
+                        var distance = Math.sqrt(Math.pow(spaceship.offsetLeft - enemy.offsetLeft, 2) + Math.pow(spaceship.offsetTop - enemy.offsetTop, 2));
+                        if (distance < 50) {
+                            var explosion = document.createElement('img');
+                            explosion.src = 'https://bit.ly/explosion2-gif';
+                            explosion.style.position = 'absolute';
+                            explosion.style.top = spaceship.offsetTop + 'px';
+                            explosion.style.left = spaceship.offsetLeft + 'px';
+                            explosion.style.transform = 'translate(-50%, -50%)';
+                            explosion.style.width = '3%';
+                            document.body.appendChild(explosion);
+                            setTimeout(function () {
+                                document.body.removeChild(explosion);
+                            }, 1000);
+                            document.body.removeChild(spaceship);
+                            clearInterval(enemyInterval);
+                            clearInterval(intervalId);
+                            var audio = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_187390c215.mp3');
+                            audio.play();
+
+                            var reloadBtn = document.getElementById('reload-btn');
+                            reloadBtn.style.display = 'block';
+                        }
+                    }
+                }
+            }
+
+            var intervalId = setInterval(checkCollision, 10);
+
+            var bulletImg = new Image();
+            bulletImg.src = 'https://bit.ly/bullet-superpro';
+
+            var lastBulletTime;
+
+            document.body.onkeydown = function (e) {
+                if (e.keyCode == 32) {
+                    var now = new Date().getTime();
+                    if (!lastBulletTime || now - lastBulletTime >= 400) {
+                        lastBulletTime = now;
+
+                        // 生成中间子弹
+                        var bullet = createBullet(1.5);
+                        document.body.appendChild(bullet);
+
+                        // 生成左边子弹
+                        var bulletLeft = createBullet(-25);
+                        bulletLeft.style.top = (spaceship.offsetTop - 30) + 'px';
+                        document.body.appendChild(bulletLeft);
+
+                        // 生成右边子弹
+                        var bulletRight = createBullet(27.5);
+                        bulletRight.style.top = (spaceship.offsetTop - 30) + 'px';
+                        document.body.appendChild(bulletRight);
+                    }
+                }
+            };
+
+            function createBullet(offset) {
+                var bullet = document.createElement('img');
+                bullet.src = bulletImg.src;
+                bullet.style.position = 'absolute';
+                bullet.style.top = (spaceship.offsetTop - 50) + 'px';
+                bullet.style.left = (spaceship.offsetLeft - 15 + offset) + 'px';
+                bullet.style.width = '2%';
+
+                var bulletInterval = setInterval(function () {
+                    bullet.style.top = bullet.offsetTop - 10 + 'px';
+                    if (bullet.offsetTop < 0) {
+                        clearInterval(bulletInterval);
+                        document.body.removeChild(bullet);
+                    }
+
+                    var enemies = document.getElementsByTagName('img');
+                    for (var i = 0; i < enemies.length; i++) {
+                        if (enemies[i].src.indexOf('https://bit.ly/enemy-image') != -1) {
+                            var enemy = enemies[i];
+                            var distance = Math.sqrt(Math.pow(bullet.offsetLeft - enemy.offsetLeft, 2) + Math.pow(bullet.offsetTop - enemy.offsetTop, 2));
+                            if (distance < 50) {
+                                var explosion = document.createElement('img');
+                                explosion.src = 'https://bit.ly/explosion-gif';
+                                explosion.style.position = 'absolute';
+                                explosion.style.top = enemy.offsetTop + 'px';
+                                explosion.style.left = enemy.offsetLeft + 'px';
+                                explosion.style.width = '2%';
+                                document.body.appendChild(explosion);
+                                setTimeout(function () {
+                                    document.body.removeChild(explosion);
+                                }, 500);
+                                document.body.removeChild(enemy);
+                                document.body.removeChild(bullet);
+                                score += 10;
+                                scoreElement.innerHTML = 'Score: ' + score;
+                                var audio = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_2e8fc4a203.mp3');
+                                audio.play();
+                            }
+                        }
+                    }
+                }, 10);
+
+                return bullet;
+            }
+        });
+    </script>
+    </head>
+
+    <body style="margin: 0;">
+        <!--
+        <div style="background-color: black; position: fixed; bottom: 0; width: 100%; height: 20px; padding: 20px; opacity: .85; z-index: 1000;">
+        <svg id="Layer_1" data-name="Layer 1" height="40px" width="40px" style="top: -8px; position: relative;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><defs><style>.cls-1{fill:#fff;}</style></defs><title>openai-symbol-flat-white</title><path class="cls-1" d="M617.24,...
+        </div>
+        -->
+
+        </div>
+    </body>
+    <html>
